@@ -92,10 +92,10 @@ def generate_latents(
     try:
         logger.info("Generating latent vectors")
         output = latents.generate_latents(text=item.text)
-        latent_vector = output.texts[0]
+        latent_vector = output.texts[0].flatten().tolist()
         return GenerateLatentsResponse(
             text=item.text,
-            vector=latent_vector.flatten().tolist(),
+            vector=latent_vector,
             dim=len(latent_vector),
         )
     except Exception as e:
