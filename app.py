@@ -84,8 +84,8 @@ async def ready(response: Response):
         response.status_code = status.HTTP_204_NO_CONTENT
 
 
-@app.post("/latents")
-@app.post("/latents/")
+@app.post("/latents", response_model_exclude_defaults=True)
+@app.post("/latents/", response_model_exclude_defaults=True)
 def generate_latents(
     item: GenerateLatentsInput, response: Response
 ) -> GenerateLatentsResponse:
