@@ -5,7 +5,7 @@ from logging import getLogger
 
 import huggingface_hub
 import uvicorn
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response, status, HTTPException
 from pydantic import BaseModel, Field
 
 from ct_clip.ct_clip.latents import CTClipLatents
@@ -20,7 +20,6 @@ class GenerateLatentsResponse(BaseModel):
     text: str = None
     vector: list[float] = Field(default_factory=list)
     dim: int = 0
-    error: str = None
 
 
 logging.basicConfig(level=logging.INFO)
@@ -84,11 +83,9 @@ async def ready(response: Response):
         response.status_code = status.HTTP_204_NO_CONTENT
 
 
-@app.post("/latents", response_model_exclude_defaults=True)
-@app.post("/latents/", response_model_exclude_defaults=True)
-def generate_latents(
-    item: GenerateLatentsInput, response: Response
-) -> GenerateLatentsResponse:
+@app.post("/latents")
+@app.post("/latents/")
+def generate_latents(item: GenerateLatentsInput) -> GenerateLatentsResponse:
     try:
         logger.info("Generating latent vectors")
         output = latents.generate_latents(text=item.text)
@@ -99,9 +96,12 @@ def generate_latents(
             dim=len(latent_vector),
         )
     except Exception as e:
-        logger.exception("Something went wrong while generating latent vectors.")
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return GenerateLatentsResponse(error=str(e))
+        logger.exception(
+            "Something went wrong while generating latent vectors.", exc_info=e
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 if __name__ == "__main__":
