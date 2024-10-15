@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
         model_path = huggingface_hub.hf_hub_download(
             repo_id="ibrahimhamamci/CT-RATE",
             repo_type="dataset",
-            filename="models/CT_CLIP_zeroshot.pt",
+            filename="models_deprecated/CT_CLIP_zeroshot.pt",
             local_dir=".",
             token=huggingface_token,
         )
