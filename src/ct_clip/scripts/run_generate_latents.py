@@ -1,4 +1,5 @@
 import argparse
+from typing import Optional
 
 from transformers import BertTokenizer, BertModel
 
@@ -6,11 +7,12 @@ from ct_clip import CTCLIP, CTViT
 from ct_clip.ct_clip.latents import CTClipLatents
 
 
-def init_default_model(path_to_pretrained_model: str) -> CTClipLatents:
-    tokenizer = BertTokenizer.from_pretrained(
-        "microsoft/BiomedVLP-CXR-BERT-specialized", do_lower_case=True
-    )
-    text_encoder = BertModel.from_pretrained("microsoft/BiomedVLP-CXR-BERT-specialized")
+def init_default_model(
+    ctclip_model_path: str, bert_model_path: Optional[str] = None
+) -> CTClipLatents:
+    bert_model = bert_model_path or "microsoft/BiomedVLP-CXR-BERT-specialized"
+    tokenizer = BertTokenizer.from_pretrained(bert_model, do_lower_case=True)
+    text_encoder = BertModel.from_pretrained(bert_model)
 
     text_encoder.resize_token_embeddings(len(tokenizer))
 
@@ -39,11 +41,12 @@ def init_default_model(path_to_pretrained_model: str) -> CTClipLatents:
         use_all_token_embeds=False,
     )
 
-    return CTClipLatents(tokenizer, clip, path_to_pretrained_model)
+    return CTClipLatents(tokenizer, clip, ctclip_model_path)
 
 
 def main(
-    path_to_pretrained_model: str,
+    ctclip_model: str,
+    bert_model: str,
     texts: list[str] = None,
     image_paths: list[str] = None,
 ):
@@ -55,7 +58,7 @@ def main(
         print("Nothing to do")
         return
 
-    ctcliplatents = init_default_model(path_to_pretrained_model)
+    ctcliplatents = init_default_model(ctclip_model, bert_model)
 
     print("Input text:", texts)
     print("Generating latents...")
@@ -67,8 +70,12 @@ def main(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--pretrained-model",
+        "--ctclip-model",
         help="Path to pretrained CT-CLIP model file",
+    )
+    parser.add_argument(
+        "--bert-model",
+        help="Path to pretrained BERT model file",
     )
     parser.add_argument(
         "--text", help="Input text string", action="append", dest="texts"
@@ -93,7 +100,8 @@ def main_cli():
         with open(args.text_file) as f:
             texts.extend(map(str.strip, f.readlines()))
     main(
-        args.pretrained_model,
+        args.ctclip_model,
+        args.bert_model,
         texts,
         args.image_files,
     )

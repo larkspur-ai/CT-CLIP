@@ -19,21 +19,21 @@ RUN apt-get update && \
 COPY pyproject.toml .
 RUN pip3 install .
 
-#
-#FROM python:3.11-slim AS download_model
-#WORKDIR /app
-#COPY download.py .
-#RUN pip install torch transformers huggingface_hub
-#ENV TRUST_REMOTE_CODE=true
-#RUN --mount=type=secret,id=HUGGINGFACE_TOKEN \
-#  HUGGINGFACE_TOKEN=$(cat /run/secrets/HUGGINGFACE_TOKEN) \
-#  ./download.py
+
+FROM python:3.11-slim AS download_model
+WORKDIR /app
+COPY download.py .
+RUN pip install torch transformers huggingface_hub
+RUN --mount=type=secret,id=HUGGINGFACE_TOKEN \
+  HUGGINGFACE_TOKEN=$(cat /run/secrets/HUGGINGFACE_TOKEN) \
+  TRUST_REMOTE_CODE=true \
+  python3 download.py
 
 
 FROM base_image AS app
 
 WORKDIR /app
-#COPY --from=download_model /app/models /app/models
+COPY --from=download_model /app/models /app/models
 #COPY CT_CLIP_zeroshot.pt /app/models/
 COPY src /app/src
 RUN pip3 install .
