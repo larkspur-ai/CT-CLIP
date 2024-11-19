@@ -1,15 +1,18 @@
 import logging
-import os
+
+# import os
 from contextlib import asynccontextmanager
 from logging import getLogger
 
-import huggingface_hub
+# import huggingface_hub
 import uvicorn
 from fastapi import FastAPI, Response, status, HTTPException
 from pydantic import BaseModel, Field
 
-from ct_clip.ct_clip.latents import CTClipLatents
-from ct_clip.scripts.run_generate_latents import init_default_model
+# from ct_clip.ct_clip.latents import CTClipLatents
+from ct_clip.fake import FakeCtClip
+
+# from ct_clip.scripts.run_generate_latents import init_default_model
 
 
 class GenerateLatentsInput(BaseModel):
@@ -26,7 +29,8 @@ logging.basicConfig(level=logging.INFO)
 logger = getLogger("app")
 
 
-latents: CTClipLatents | None = None
+# latents: CTClipLatents | None = None
+latents: FakeCtClip | None = None
 
 
 @asynccontextmanager
@@ -34,33 +38,34 @@ async def lifespan(app: FastAPI):
 
     # model_dir = os.environ.get("MODEL_DIR", "models")
     # model_dir = Path(model_dir)
-    # model_dir.mkdir(parents=True, exist_ok=True)
-    model_dir = "models"
-    ctclip_path = model_dir + "/CT_CLIP_zeroshot.pt"
-    if not os.path.exists(ctclip_path):
-        huggingface_token = os.getenv("HUGGINGFACE_TOKEN")
-        if not huggingface_token:
-            raise RuntimeError(
-                "HUGGINGFACE_TOKEN env is not set. Cannot download CT-CLIP."
-            )
-
-        # Download CT-CLIP model weights
-        logger.info("Downloading CT-CLIP model from huggingface...")
-        ctclip_path = huggingface_hub.hf_hub_download(
-            repo_id="ibrahimhamamci/CT-RATE",
-            repo_type="dataset",
-            filename="models_deprecated/CT_CLIP_zeroshot.pt",
-            local_dir=".",
-            token=huggingface_token,
-        )
-        logger.info("CT-CLIP model downloaded to %s.", ctclip_path)
-    else:
-        logger.info("CT-CLIP model already exists at path %s.", ctclip_path)
+    # # model_dir.mkdir(parents=True, exist_ok=True)
+    # model_dir = "models"
+    # ctclip_path = model_dir + "/CT_CLIP_zeroshot.pt"
+    # if not os.path.exists(ctclip_path):
+    #     huggingface_token = os.getenv("HUGGINGFACE_TOKEN")
+    #     if not huggingface_token:
+    #         raise RuntimeError(
+    #             "HUGGINGFACE_TOKEN env is not set. Cannot download CT-CLIP."
+    #         )
+    #
+    #     # Download CT-CLIP model weights
+    #     logger.info("Downloading CT-CLIP model from huggingface...")
+    #     ctclip_path = huggingface_hub.hf_hub_download(
+    #         repo_id="ibrahimhamamci/CT-RATE",
+    #         repo_type="dataset",
+    #         filename="models_deprecated/CT_CLIP_zeroshot.pt",
+    #         local_dir=".",
+    #         token=huggingface_token,
+    #     )
+    #     logger.info("CT-CLIP model downloaded to %s.", ctclip_path)
+    # else:
+    #     logger.info("CT-CLIP model already exists at path %s.", ctclip_path)
 
     # Load the ML model
     global latents
     logger.info("Loading CT-CLIP model.")
-    latents = init_default_model(ctclip_path, model_dir)
+    # latents = init_default_model(ctclip_path, model_dir)
+    latents = FakeCtClip()
     logger.info(f"Loaded CT-CLIP on device {latents.accelerator.device}")
 
     yield

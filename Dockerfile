@@ -4,36 +4,37 @@ FROM python:3.11-slim AS base_image
 WORKDIR /app
 
 RUN pip install --upgrade pip setuptools
-RUN apt-get update && \
-    apt-get install -y \
-      gcc \
-      git \
-      libhdf5-serial-dev \
-      libgl1 \
-      libgl1-mesa-glx \
-      libglib2.0-0 \
-      pkg-config \
-    && \
-    rm -rf /var/lib/apt/lists/*
-
+#RUN apt-get update && \
+#    apt-get install -y \
+#      gcc \
+#      git \
+#      libhdf5-serial-dev \
+#      libgl1 \
+#      libgl1-mesa-glx \
+#      libglib2.0-0 \
+#      pkg-config \
+#    && \
+#    rm -rf /var/lib/apt/lists/*
+#
 COPY pyproject.toml .
 RUN pip3 install .
 
 
-FROM python:3.11-slim AS download_model
-WORKDIR /app
-COPY download.py .
-RUN pip install torch transformers huggingface_hub
-RUN --mount=type=secret,id=HUGGINGFACE_TOKEN \
-  HUGGINGFACE_TOKEN=$(cat /run/secrets/HUGGINGFACE_TOKEN) \
-  TRUST_REMOTE_CODE=true \
-  python3 download.py
+#FROM python:3.11-slim AS download_model
+#WORKDIR /app
+#COPY download.py .
+#RUN pip install torch transformers huggingface_hub
+#RUN --mount=type=secret,id=HUGGINGFACE_TOKEN \
+#  HUGGINGFACE_TOKEN=$(cat /run/secrets/HUGGINGFACE_TOKEN) \
+#  TRUST_REMOTE_CODE=true \
+#  python3 download.py
 
 
-FROM base_image AS app
 
-WORKDIR /app
-COPY --from=download_model /app/models /app/models
+#FROM base_image AS app
+
+#WORKDIR /app
+#COPY --from=download_model /app/models /app/models
 #COPY CT_CLIP_zeroshot.pt /app/models/
 COPY src /app/src
 RUN pip3 install .
