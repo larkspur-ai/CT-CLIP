@@ -1,8 +1,17 @@
 # CT-CLIP: A foundation model utilizing chest CT volumes and radiology reports for supervised-level zero-shot detection of abnormalities
 A fork of the official repository of CT-CLIP. You can access the dataset and pretrained model weights via the [HuggingFace repository](https://huggingface.co/datasets/ibrahimhamamci/CT-RATE).
 
-This repo reorganizes the CT-CLIP code into a single coherent python package and
-adds APIs to generate latent vectors.
+This repo reorganizes the CT-CLIP code into a single coherent python package and adds APIs to generate latent vectors.
+
+## To use the API:
+Set up a service using the [helm chart](https://github.com/washu-tag/poc-test/tree/main/helm/ctclip). Currently, the service is a `ClusterIP`, so you will need to port-forward or swap to a different service type to access the endpoint outside of the k8s cluster.
+
+```
+kubectl port-forward service/ctclip 8080:80 -n ctclip
+curl -X POST http://localhost:8080/latents \
+     -H 'Content-Type: application/json' \
+     -d '{"text": "this is a test"}'
+```
 
 ## Setup
 
